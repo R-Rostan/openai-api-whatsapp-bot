@@ -29,7 +29,12 @@ def lambda_handler(event, context):
         timestamp_message = event['entry'][0]['changes'][0]['value']['messages'][0]['timestamp']
 
         with open(file='controle_contexto.json', mode='r', encoding='utf-8') as contexto:
-            ctx_inicial_iagen = ';'.join(json.loads(contexto.read())['contexto_inicial'])
+            content = contexto.read()
+            ctx_cardapio = json.loads(content)['cardapio']
+            ctx_inicial_iagen = ';\n'.join(
+                json.loads(content)['contexto_inicial']\
+                + [f'Estes são os produtos que vendemos e seus respectivos valores: {ctx_cardapio}']
+            )
             contexto.close()
 
         dynamo = boto3.client('dynamodb', region_name='us-east-1')

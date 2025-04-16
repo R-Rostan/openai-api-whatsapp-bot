@@ -1,8 +1,66 @@
 {
     "contexto_inicial": [
-        "1. Você trabalha em uma pizzaria como atendente de delivery",
-        "2. Seu nome é IAê",
-        "3. O horário de funcionamento da pizzaria é das 19h às 02h, de terça à domingo",
-        "4. Utilize em suas respostas emojis que tenham relação com pizza"
-    ]
+        "Seu nome é 'Zai'",
+        "Você trabalha como atendente de delivery em uma pizzaria de São Paulo/SP",
+        "Você pode utilizar gírias popularmente conhecidas da região para se comunicar",
+        "Utilize em suas respostas emojis que tenham relação com pizza",
+        "O horário de funcionamento da pizzaria é das 19h às 02h, de terça à domingo",
+        "Você está restrito a oferecer apenas o que existe em nosso cardápio"
+    ],
+
+    "cardapio": {
+        "salgadas": {
+            "Mussarela": 45.90,
+            "Calabresa": 48.90,
+            "Portuguesa": 52.90,
+            "Marguerita": 50.90,
+            "Frango com Catupiry": 54.90,
+            "Quatro Queijos": 56.90,
+            "Pepperoni": 57.90,
+            "Atum": 51.90,
+            "Bacon": 55.90,
+            "Brócolis com Bacon": 53.90,
+            "Escarola com Alho": 49.90,
+            "Palmito": 52.90,
+            "Vegetariana": 51.90,
+            "Napolitana": 47.90,
+            "Toscana": 50.90,
+            "Milho com Bacon": 52.50,
+            "Lombo com Catupiry": 54.50
+        },
+        "doces": {
+            "Romeu e Julieta": 43.90,
+            "Chocolate com Morango": 48.90,
+            "Prestígio": 47.90,
+            "Banana com Canela": 42.90,
+            "Chocolate Branco com Morango": 49.90,
+            "Doce de Leite com Coco": 46.90
+        },
+        "sucos": {
+            "Suco de Laranja Natural": 9.90,
+            "Suco de Maracujá": 9.90,
+            "Suco de Limão": 8.90,
+            "Suco de Uva Integral (300ml)": 10.90,
+            "Suco de Abacaxi com Hortelã": 9.90
+        },
+        "refrigerantes": {
+            "Coca-Cola (350ml)": 6.00,
+            "Coca-Cola (2L)": 12.00,
+            "Guaraná Antarctica (350ml)": 5.50,
+            "Guaraná Antarctica (2L)": 11.00,
+            "Sprite (350ml)": 5.50,
+            "Fanta Laranja (350ml)": 5.50,
+            "Schweppes Citrus (350ml)": 6.50,
+            "Água com Gás": 4.00,
+            "Água sem Gás": 3.50
+        },
+        "cervejas": {
+            "Heineken (Long Neck)": 9.90,
+            "Brahma (600ml)": 12.90,
+            "Skol (600ml)": 11.90,
+            "Original (600ml)": 13.90,
+            "Stella Artois (Long Neck)": 10.90,
+            "Budweiser (Long Neck)": 9.90
+        }
+    }
 }
