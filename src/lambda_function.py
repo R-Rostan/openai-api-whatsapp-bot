@@ -5,12 +5,17 @@ import os
 import boto3
 import uuid
 import datetime as dt
+import atendente_ai
 
 def lambda_handler(event, context):
-    api_key = os.environ['OPENAI_API_KEY']
+    
     wpp_token = os.environ['META_WPP_API_TOKEN']
     wpp_business_phone_id = os.environ['WHATSAPP_BUSINESS_PHONE_NUMBER_ID']
+    
     dynamo_table = 'wpp-chat'
+    dynamo = boto3.client('dynamodb', region_name='us-east-1')
+    
+    zai = atendente_ai.AtendenteAI()
 
     print('payload_recebido:', event)
  
@@ -27,18 +32,13 @@ def lambda_handler(event, context):
         received_message = event['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
         id_message = event['entry'][0]['changes'][0]['value']['messages'][0]['id']
         timestamp_message = event['entry'][0]['changes'][0]['value']['messages'][0]['timestamp']
-
-        with open(file='controle_contexto.json', mode='r', encoding='utf-8') as contexto:
-            ctx_inicial_iagen = ';'.join(json.loads(contexto.read())['contexto_inicial'])
-            contexto.close()
-
-        dynamo = boto3.client('dynamodb', region_name='us-east-1')
         
         ctx_check = dynamo.get_item(TableName=dynamo_table, Key={'wa_id':{'S': to}}).get('Item')
+
         if ctx_check is not None:
 
-            messages = eval(ctx_check['contexto']['S'])
-            messages += [
+            msg = eval(ctx_check['contexto']['S'])
+            msg += [
                 {
                     "role": "user",
                     "content": received_message,
@@ -49,45 +49,22 @@ def lambda_handler(event, context):
 
         else:
 
-            messages = [
-                {
-                    "role": "developer",
-                    "content": ctx_inicial_iagen,
-                    "id_message": 'developer' + str(uuid.uuid4()),
-                    "timestamp_message": int(dt.datetime.now().timestamp())
-                },
-                {
-                    "role": "user",
-                    "content": received_message,
-                    "id_message": id_message,
-                    "timestamp_message": timestamp_message
-                }
-            ]
+            msg = [{
+                "role": "user",
+                "content": received_message,
+                "id_message": id_message,
+                "timestamp_message": timestamp_message
+            }]
 
-        client = OpenAI(api_key=api_key)
-        completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {k: v for k, v in m.items() if k in ['role','content']}
-                for m in messages
-            ]
-        )
-        resposta = completion.choices[0].message.content
+            zai.contexto_inicial(msg = msg)
 
-        messages += [
-            {
-                "role": "assistant",
-                "content": resposta,
-                "id_message": 'assistant' + str(uuid.uuid4()),
-                "timestamp_message": int(dt.datetime.now().timestamp())
-            }
-        ]
+        mensagens = zai.respostas(msg = msg)
 
         dynamo_add_item = dynamo.put_item(
             TableName = dynamo_table,
             Item = {
                 'wa_id':{'S': to},
-                'contexto':{'S': str(messages)}
+                'contexto':{'S': str(mensagens['ctx'])}
             }
         )
 
@@ -102,7 +79,7 @@ def lambda_handler(event, context):
             'to': to,
             'type': 'text',
             'text': {
-                'body': resposta,
+                'body': mensagens['body'],
             }
         }
 

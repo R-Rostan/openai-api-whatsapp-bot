@@ -40,3 +40,4 @@ src/typing_inspection-0.4.0.dist-info
 src/urllib3
 src/urllib3-2.4.0.dist-info
 src/__pycache__
+*.zip
