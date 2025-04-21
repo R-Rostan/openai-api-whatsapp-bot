@@ -26,7 +26,7 @@ class AtendenteAI:
             "type": "function",
             "name": "pedidos",
             "description": f"""
-                Você precisa coletar o pedido do cliente e o endereço de entrega do pedido.
+                Você precisa coletar o pedido do cliente, endereço de entrega do pedido e a forma de pagamento.
                 Após cada novo item solicitado pelo cliente, pergunte novamente se ele gostaria de adicionar mais algum produto ao pedido.
             """,
             "parameters": {
@@ -80,15 +80,32 @@ class AtendenteAI:
                         "required": ["nome_rua", "numero", "complemento"],
                         "additionalProperties": False
                     },
+                    "forma_pagamento": {
+                        "type": "string",
+                        "description": "Forma de pagamento escolhida pelo cliente.",
+                        "enum": [
+                            "Cartão de Débito",
+                            "Cartão de Crédito",
+                            "PIX",
+                            "Dinheiro"
+                        ]
+                    },
                     "confirmacao_pedido": {
                         "type": "string",
-                        "description": """
-                            Se o cliente confirma que estão corretos todos os detalhes da compra (quantidade de itens, valores e endereço de entrega), preencha com 'Sim'.
-                            Caso contrário, preencha com 'Não'.
-                        """
+                        "description": "Confirmação do cliente sobre todos os detalhes da compra (quantidade de itens, valores e endereço de entrega).",
+                        "enum": [
+                            "Pedido correto",
+                            "Pedido incorreto"
+                        ]
                     },
                 },
-                "required": ["pedido_cliente", "valor_total_pedido", "endereco_cliente", "confirmacao_pedido"],
+                "required": [
+                    "pedido_cliente",
+                    "valor_total_pedido",
+                    "endereco_cliente",
+                    "forma_pagamento",
+                    "confirmacao_pedido"
+                ],
                 "additionalProperties": False
             },
             "strict": True
