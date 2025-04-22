@@ -125,7 +125,7 @@ class AtendenteAI:
             }
         ] + msg
 
-    def respostas(self, msg, temperature=0.7):
+    def respostas(self, msg, wa_id, temperature=0.7):
 
         self.mensagens += msg
         response = self.client.responses.create(
@@ -140,14 +140,19 @@ class AtendenteAI:
 
         if response.output[0].type == 'function_call':
 
-            print('Pedido completo.')
-            print(response.output[0].arguments)
+            pedido_payload = eval(response.output[0].arguments)
+            pedido_payload['protocolo_pedido'] = str(uuid.uuid4().int)[:8]
+            pedido_payload['wa_id'] = wa_id
+            pedido_payload['ts_conclusao_pedido'] = int(dt.datetime.now().timestamp())
 
             self.mensagens += [{
                 "role":"developer",
-                "content": "Agradeça ao cliente pela realização do pedido.",
+                "content": f"""
+                    Agradeça ao cliente pela realização da compra e informe o número de pedido.
+                    O número do pedido do cliente é o {pedido_payload['protocolo_pedido']}
+                """,
                 "id_message": 'assistant' + str(uuid.uuid4()),
-                "timestamp_message": int(dt.datetime.now().timestamp())
+                "timestamp_message": pedido_payload['ts_conclusao_pedido']
             }]
 
             response = self.client.responses.create(
@@ -159,17 +164,22 @@ class AtendenteAI:
                 temperature = temperature
             )
 
-            print(response.output[0].content[0].text)
+            self.mensagens += [{
+                    "role":"assistant",
+                    "content": response.output[0].content[0].text,
+                    "id_message": 'assistant' + str(uuid.uuid4()),
+                    "timestamp_message": int(dt.datetime.now().timestamp())
+                }]
+
+            return {'ctx': self.mensagens, 'body': response.output[0].content[0].text, 'pedido_payload': pedido_payload}
         
         else:
 
-            print(response.output[0].content[0].text)
+            self.mensagens += [{
+                    "role":"assistant",
+                    "content": response.output[0].content[0].text,
+                    "id_message": 'assistant' + str(uuid.uuid4()),
+                    "timestamp_message": int(dt.datetime.now().timestamp())
+                }]
 
-        self.mensagens += [{
-                "role":"assistant",
-                "content": response.output[0].content[0].text,
-                "id_message": 'assistant' + str(uuid.uuid4()),
-                "timestamp_message": int(dt.datetime.now().timestamp())
-            }]
-
-        return {'ctx': self.mensagens, 'body': response.output[0].content[0].text}
+            return {'ctx': self.mensagens, 'body': response.output[0].content[0].text, 'pedido_payload': None}
