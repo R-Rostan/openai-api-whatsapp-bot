@@ -8,6 +8,8 @@ import datetime as dt
 import atendente_ai
 
 def lambda_handler(event, context):
+
+    print('Payload: ', event)
     
     wpp_token = os.environ['META_WPP_API_TOKEN']
     wpp_business_phone_id = os.environ['WHATSAPP_BUSINESS_PHONE_NUMBER_ID']
@@ -17,7 +19,8 @@ def lambda_handler(event, context):
     
     zai = atendente_ai.AtendenteAI()
  
-    msg_check = event['entry'][0]['changes'][0]['value'].get('statuses')
+    event_body = json.loads(event['body'])
+    msg_check = event_body['entry'][0]['changes'][0]['value'].get('statuses')
     if msg_check is not None:      
         
         status_mensagem = msg_check[0]['status']
@@ -27,10 +30,10 @@ def lambda_handler(event, context):
         
         print('payload_recebido:', event)
 
-        wa_id = event['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
-        received_message = event['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
-        id_message = event['entry'][0]['changes'][0]['value']['messages'][0]['id']
-        timestamp_message = event['entry'][0]['changes'][0]['value']['messages'][0]['timestamp']
+        wa_id = event_body['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+        received_message = event_body['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+        id_message = event_body['entry'][0]['changes'][0]['value']['messages'][0]['id']
+        timestamp_message = event_body['entry'][0]['changes'][0]['value']['messages'][0]['timestamp']
         
         ctx_check = dynamo.get_item(TableName=dynamo_table, Key={'wa_id':{'S': wa_id}}).get('Item')
 
