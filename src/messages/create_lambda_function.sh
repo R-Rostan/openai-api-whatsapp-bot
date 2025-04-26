@@ -47,3 +47,11 @@ aws lambda create-function \
     --region "$AWS_REGION" \
     --timeout 15 \
     --memory-size 128
+
+sleep 10
+aws lambda update-function-configuration \
+  --function-name $LAMBDA_NAME \
+  --environment "Variables={\
+    META_WPP_API_TOKEN=${META_WPP_API_TOKEN},\
+    OPENAI_API_KEY=${OPENAI_API_KEY},\
+    WHATSAPP_BUSINESS_PHONE_NUMBER_ID=${WHATSAPP_BUSINESS_PHONE_NUMBER_ID}}"
