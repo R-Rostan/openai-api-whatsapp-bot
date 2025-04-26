@@ -1,35 +1,49 @@
-ROLE_NAME="wppMessages-lambda-role"
-LAMBDA_NAME="wppMessages"
+LAMBDA_NAME="wpp-messages"
 
 echo "Creating trust policy..."
 aws iam create-role \
-    --role-name $ROLE_NAME \
+    --role-name ${LAMBDA_NAME}-lambda-role \
     --assume-role-policy-document file://role_trust_policy.json
-echo "Success!"
 
 echo "Attaching AWSLambdaBasicExecutionRole policy..."
 aws iam attach-role-policy \
-  --role-name $ROLE_NAME \
+  --role-name ${LAMBDA_NAME}-lambda-role \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-echo "Success!"
 
-echo "Adding permission policies to the ${ROLE_NAME} Lambda function..."
+echo "Adding permission policies to the ${LAMBDA_NAME} Lambda function..."
 aws iam put-role-policy \
-  --role-name $ROLE_NAME \
+  --role-name ${LAMBDA_NAME}-lambda-role \
   --policy-name S3DynamoPermission \
   --policy-document file://role_permission_policy.json
-echo "Success!"
 
 echo "Waiting role propagation..."
 sleep 15
 
-echo "Creating ${ROLE_NAME} Lambda function..."
+echo "Creating ${LAMBDA_NAME} Docker Image..."
+docker buildx build --platform linux/amd64 --provenance=false -t ${LAMBDA_NAME}-image:latest .
+
+echo "Creating ${LAMBDA_NAME} ECR Repository"
+aws ecr create-repository --repository-name ${LAMBDA_NAME}-image
+
+echo "Uploading docker image to the ${LAMBDA_NAME} ECR Repository..."
+aws ecr get-login-password \
+  --region ${AWS_REGION} | docker login \
+  --username AWS \
+  --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+sleep 5
+docker tag ${LAMBDA_NAME}-image:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${LAMBDA_NAME}-image:latest
+
+sleep 5
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${LAMBDA_NAME}-image:latest
+
+sleep 10
+echo "Creating ${LAMBDA_NAME} Lambda function..."
 aws lambda create-function \
     --function-name $LAMBDA_NAME \
     --package-type Image \
-    --code ImageUri="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/wpp-messages:latest" \
-    --role $(aws iam get-role --role-name "$ROLE_NAME" --query "Role.Arn" --output text) \
+    --code ImageUri="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${LAMBDA_NAME}-image:latest" \
+    --role $(aws iam get-role --role-name "${LAMBDA_NAME}-lambda-role" --query "Role.Arn" --output text) \
     --region "$AWS_REGION" \
     --timeout 15 \
     --memory-size 128
-echo "Success!"
