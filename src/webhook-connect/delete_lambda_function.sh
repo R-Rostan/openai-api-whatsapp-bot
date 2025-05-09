@@ -1,14 +1,4 @@
-LAMBDA_NAME="wpp-messages"
-
-echo "Deleting permission policies..."
-for policy_name in \
-    $(aws iam list-role-policies \
-        --role-name "${LAMBDA_NAME}-lambda-role" \
-        --query 'PolicyNames[]' \
-        --output text); do
-  echo "Deleting: ${policy_name}..."
-  aws iam delete-role-policy --role-name "${LAMBDA_NAME}-lambda-role" --policy-name "$policy_name"
-done
+LAMBDA_NAME="wpp-webhook-connect"
 
 echo "Detaching trust policies..."
 for policy_arn in \

@@ -1,7 +1,5 @@
 FROM public.ecr.aws/lambda/python:3.13
 
-COPY atendente_ai.py ${LAMBDA_TASK_ROOT}
-COPY cardapio.json ${LAMBDA_TASK_ROOT}
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 

@@ -1,4 +1,4 @@
-LAMBDA_NAME="wpp-messages"
+LAMBDA_NAME="wpp-webhook-connect"
 
 echo "Creating trust policy..."
 aws iam create-role \
@@ -10,14 +10,8 @@ aws iam attach-role-policy \
   --role-name ${LAMBDA_NAME}-lambda-role \
   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 
-echo "Adding permission policies to the ${LAMBDA_NAME} Lambda function..."
-aws iam put-role-policy \
-  --role-name ${LAMBDA_NAME}-lambda-role \
-  --policy-name S3DynamoPermission \
-  --policy-document file://role_permission_policy.json
-
 echo "Waiting role propagation..."
-sleep 15
+sleep 5
 
 echo "Creating ${LAMBDA_NAME} Docker Image..."
 docker buildx build --platform linux/amd64 --provenance=false -t ${LAMBDA_NAME}-image:latest .
@@ -51,7 +45,4 @@ aws lambda create-function \
 sleep 10
 aws lambda update-function-configuration \
   --function-name $LAMBDA_NAME \
-  --environment "Variables={\
-    META_WPP_API_TOKEN=${META_WPP_API_TOKEN},\
-    OPENAI_API_KEY=${OPENAI_API_KEY},\
-    WHATSAPP_BUSINESS_PHONE_NUMBER_ID=${WHATSAPP_BUSINESS_PHONE_NUMBER_ID}}"
+  --environment "Variables={META_WPP_WEBHOOK_TOKEN=${META_WPP_WEBHOOK_TOKEN}}"

@@ -1,4 +1,4 @@
-LAMBDA_NAME="wpp-messages"
+LAMBDA_NAME="wpp-raw-process"
 
 echo "Deleting permission policies..."
 for policy_name in \

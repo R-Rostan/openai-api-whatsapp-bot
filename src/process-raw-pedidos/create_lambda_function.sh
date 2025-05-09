@@ -1,4 +1,5 @@
-LAMBDA_NAME="wpp-messages"
+LAMBDA_NAME="wpp-raw-process"
+export LAMBDA=${LAMBDA_NAME}
 
 echo "Creating trust policy..."
 aws iam create-role \
@@ -13,7 +14,7 @@ aws iam attach-role-policy \
 echo "Adding permission policies to the ${LAMBDA_NAME} Lambda function..."
 aws iam put-role-policy \
   --role-name ${LAMBDA_NAME}-lambda-role \
-  --policy-name S3DynamoPermission \
+  --policy-name S3PutGetObjects \
   --policy-document file://role_permission_policy.json
 
 echo "Waiting role propagation..."
@@ -45,13 +46,23 @@ aws lambda create-function \
     --code ImageUri="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${LAMBDA_NAME}-image:latest" \
     --role $(aws iam get-role --role-name "${LAMBDA_NAME}-lambda-role" --query "Role.Arn" --output text) \
     --region "$AWS_REGION" \
-    --timeout 15 \
+    --timeout 60 \
     --memory-size 128
 
-sleep 10
-aws lambda update-function-configuration \
+echo "Adding S3 invoke permission..."
+aws lambda add-permission \
   --function-name $LAMBDA_NAME \
-  --environment "Variables={\
-    META_WPP_API_TOKEN=${META_WPP_API_TOKEN},\
-    OPENAI_API_KEY=${OPENAI_API_KEY},\
-    WHATSAPP_BUSINESS_PHONE_NUMBER_ID=${WHATSAPP_BUSINESS_PHONE_NUMBER_ID}}"
+  --principal s3.amazonaws.com \
+  --statement-id s3invoke \
+  --action "lambda:InvokeFunction" \
+  --source-arn arn:aws:s3:::${AWS_RAW_BUCKET}
+
+echo "Creating S3 notification..."
+envsubst < notification.json > notification_var.json
+
+sleep 20
+aws s3api put-bucket-notification-configuration \
+  --bucket ${AWS_RAW_BUCKET} \
+  --notification-configuration file://notification_var.json
+
+rm notification_var.json
