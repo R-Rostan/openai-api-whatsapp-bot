@@ -4,10 +4,11 @@ import io
 import json
 import datetime as dt
 import uuid
+import urllib.parse
 
 def lambda_handler(event, context):
     
-    file = event['Records'][0]['s3']['object']['key']
+    file = urllib.parse.unquote(event['Records'][0]['s3']['object']['key'])
 
     s3 = boto3.client('s3')
 
